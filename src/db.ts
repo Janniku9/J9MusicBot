@@ -10,7 +10,9 @@ export class DataBaseHelper {
         this.initDatabase();
     }
 
-    private async initDatabase() {
+    // DB INIT
+
+    private initDatabase() {
         const adapter = new FileSync('db.json');
         this.db = lowdb(adapter);
         this.db.defaults({moderators: [], songs: [], genres:[], uid: 0}).write();
@@ -21,6 +23,8 @@ export class DataBaseHelper {
          this.db.set('uid', new_uid).write();
          return new_uid;
     }
+
+    // SONG STUFF
 
     create_song(url): boolean {
         if (this.db.get('songs').value().find(s => url == s.url)) 
@@ -33,23 +37,38 @@ export class DataBaseHelper {
         return true;
     }
 
-    get_song(uid: number) : Song | undefined{
-        const songs: Song[] = this.db.get('songs').value();
-
-        return songs.find(song => song.uid == uid);
+    private get_songs (): Song[] {
+        return this.db.get('songs').value();
     }
 
-    private get_from_db_list (list_name: string): string[] {
+    get_song(uid: number) : Song | undefined{
+        return this.get_songs().find(song => song.uid == uid);
+    }
+
+    get_songs_with(fun: (s: Song) => boolean) : Song[] {
+        return this.get_songs().filter(fun);
+    }
+
+    // MANAGE LISTS
+    private get_db_list (list_name: string): string[] {
         const list: string[] = this.db.get(list_name).value();
         return list;
     }
 
-    private add_to_db_list(list_name: string, element: string) : boolean {
-        let list = this.get_from_db_list(list_name);
+    private is_in_db_list (list_name: string, element: string) : boolean {
+        let list = this.get_db_list(list_name);
 
-        if (list.find(e => e == element) != undefined)
+        if (list.find(e => e == element) == undefined)
             return false;
-        
+        return true
+    }
+
+    private add_to_db_list(list_name: string, element: string) : boolean {
+        let list = this.get_db_list(list_name);
+
+        if (this.is_in_db_list(list_name, element))
+            return false;
+
         list.push(element);
 
         this.db.set(list_name, list).write();
@@ -57,17 +76,22 @@ export class DataBaseHelper {
     }
 
     private remove_from_db_list(list_name: string, element: string) : boolean {
-        let list = this.get_from_db_list(list_name);
+        let list = this.get_db_list(list_name);
 
-        if(list.find(e => e == element) == undefined)
+        if (!this.is_in_db_list(list_name, element))
             return false;
 
         this.db.set(list_name, list.filter(e => e != element)).write();
         return true;
     }
 
+    // MODERATORS
     get_moderators () : string[] {
-        return this.get_from_db_list('moderators');
+        return this.get_db_list('moderators');
+    }
+
+    is_moderator (moderator: string) : boolean {
+        return this.is_in_db_list('moderators', moderator)
     }
 
     add_moderator (moderator: string) : boolean {
@@ -78,8 +102,13 @@ export class DataBaseHelper {
         return this.remove_from_db_list('moderators', moderator);
     }
 
+    // GENRES
     get_genres () : string[] {
-        return this.get_from_db_list('genres');
+        return this.get_db_list('genres').sort((a,b) => a > b ? 1 : b > a ? -1 : 0);
+    }
+
+    is_genre (genre: string) : boolean {
+        return this.is_in_db_list('genres', genre)
     }
 
     add_genre (genre: string) : boolean {
