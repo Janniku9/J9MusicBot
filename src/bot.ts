@@ -20,11 +20,37 @@ bot.onText(/\/genres/, (msg) => {
 });
 
 bot.onText(/\/add_genre/, (msg) => {
-    bot.sendMessage(msg.chat.id, "TODO", {parse_mode: 'HTML'});
+    const from = "" + msg.from?.id;
+    if (db.is_moderator(from)) {
+        const args = msg.text.match(/(\/add_genre)((\s)([A-Za-z]+))?/);
+        if (args[4] == undefined)
+            bot.sendMessage(msg.chat.id, "Argument Error");
+        else {
+            const genre = args[4].toUpperCase();
+            if (db.add_genre(genre)) 
+                bot.sendMessage(msg.chat.id, "#" + genre + " has been added to genres");
+            else
+                bot.sendMessage(msg.chat.id, "#" + genre + " already exists");
+        }
+    } else 
+        bot.sendMessage(msg.chat.id, "You don't have Permission to use this command!")
 });
 
 bot.onText(/\/remove_genre/, (msg) => {
-    bot.sendMessage(msg.chat.id, "TODO", {parse_mode: 'HTML'});
+    const from = "" + msg.from?.id;
+    if (db.is_moderator(from)) {
+        const args = msg.text.match(/(\/remove_genre)((\s)([A-Za-z]+))?/);
+        if (args[4] == undefined)
+            bot.sendMessage(msg.chat.id, "Argument Error");
+        else {
+            const genre = args[4].toUpperCase();
+            if (db.remove_genre(genre)) 
+                bot.sendMessage(msg.chat.id, "#" + genre + " has been removed from genres");
+            else
+                bot.sendMessage(msg.chat.id, "#" + genre + " doesn't exists");
+        }
+    } else 
+        bot.sendMessage(msg.chat.id, "You don't have Permission to use this command!")
 });
 
 // MODERATOR STUFF
@@ -32,7 +58,7 @@ bot.onText(/\/remove_genre/, (msg) => {
 bot.onText(/\/add_moderator/, (msg) => {
     const from = "" + msg.from?.id;
     if (db.is_moderator(from)) {
-        const args = msg.text.match(/(\/add_moderator)((\s?)((\d+)(\s)([^\s]+)))?/); 
+        const args = msg.text.match(/(\/add_moderator)((\s)((\d+)(\s)([^\s]+)))?/); 
         // 4 is pair, 5 is id and 7 is name
         if (args[4] == undefined)
             bot.sendMessage(msg.chat.id, "Argument Error");
@@ -49,7 +75,7 @@ bot.onText(/\/add_moderator/, (msg) => {
 bot.onText(/\/remove_moderator/, (msg) => {
     const from = "" + msg.from?.id;
     if(db.is_moderator(from)) {
-        const args = msg.text.match(/(\/remove_moderator)((\s?)((\d+)))?/);
+        const args = msg.text.match(/(\/remove_moderator)((\s)((\d+)))?/);
         if (args[4] == undefined)
             bot.sendMessage(msg.chat.id, "Argument Error");
         else {
