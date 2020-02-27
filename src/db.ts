@@ -15,7 +15,7 @@ export class DataBaseHelper {
     private initDatabase() {
         const adapter = new FileSync('db.json');
         this.db = lowdb(adapter);
-        this.db.defaults({moderators: [], songs: [], genres:[], uid: 0}).write();
+        this.db.defaults({owner: {}, moderators: [], songs: [], genres:[], uid: 0}).write();
     }
 
     private get_uid() : number {
@@ -86,6 +86,10 @@ export class DataBaseHelper {
     }
 
     // MODERATORS
+    private get_owner() : {id:string, name:string} {
+        return this.db.get('owner').value();
+    }
+
     lookup_mode_name (id: string): {id:string, name:string} | undefined {
         const mods = this.get_moderators();
         return mods.find(m => m.id == id);
@@ -96,6 +100,9 @@ export class DataBaseHelper {
     }
 
     is_moderator (moderator: string) : boolean {
+        if (moderator == this.get_owner().id)
+            return true;
+
         const pair = this.lookup_mode_name(moderator);
         if (pair == undefined) 
             return false;

@@ -65,8 +65,12 @@ bot.onText(/\/remove_moderator/, (msg) => {
 });
 
 bot.onText(/\/moderators/, (msg) => {
-    const mods = db.get_moderators();
-    bot.sendMessage(msg.chat.id, `<b>MODERATORS</b> \n\n${mods.map(m => "" + m.id + " | " + m.name + "\n").join('')}`, {parse_mode: 'HTML'});
+    const from = "" + msg.from?.id;
+    if (db.is_moderator(from)) {
+        const mods = db.get_moderators();
+        bot.sendMessage(msg.chat.id, `<b>MODERATORS</b> \n\n${mods.map(m => "" + m.id + " | " + m.name + "\n").join('')}`, {parse_mode: 'HTML'});
+    } else
+        bot.sendMessage(msg.chat.id, "You don't have Permission to use this command!")
 });
 
 // SUBMISSION STUFF
