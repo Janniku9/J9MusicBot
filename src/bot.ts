@@ -1,6 +1,7 @@
 import {DataBaseHelper} from "./db";
 import TelegramBot from 'node-telegram-bot-api';
 import {TOKEN, CHANNEL} from "./const";
+import {Song} from "./song"
 
 const db:DataBaseHelper = new DataBaseHelper();
 
@@ -101,8 +102,33 @@ bot.onText(/\/moderators/, (msg) => {
 
 // SUBMISSION STUFF
 
+function post_menu (song_id: number) : any {
+    const song = db.get_song(song_id);
+    const ratings = ['🗑️', '👎', '👌', '👍', '🔥']
+    const count_scores: (score: number) => number = (score => song.scores.filter(s => s.score == score).length);  
+    return  JSON.stringify({
+            inline_keyboard: [
+                ratings.map((r,i) => ({text:r + ' ' + count_scores(i+1),callback_data:song_id + "-score-" + i+1}))  
+            ,[
+            {
+                text: "Play!!",
+                url: song.url
+            }
+            ]]
+        });
+}
+
+function submission_text(song_id: number) : string {
+    const song:Song = db.get_song(song_id);
+    return ("<b>" + song.title + "</b>" +
+        "\n<b><i>Artists:</i></b>   " + song.artists.map(a => "#" + a + " ").join('') +
+        "\n<b><i>Genres:</i></b>  " + song.genres.map(g => "#" + g  + " ").join('') + 
+      "\n\n<b><i>Url:</i></b>         " + song.url);
+}
+
 bot.onText(/\/submit/, (msg) => {
-    bot.sendMessage(msg.chat.id, "TODO", {parse_mode: 'HTML'});
+    const song_id = 1;
+    bot.sendMessage(msg.chat.id, submission_text(song_id), {parse_mode: 'HTML', reply_markup: post_menu(song_id)});
 });
 
 bot.onText(/\/my_submissions/, (msg) => {
