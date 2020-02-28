@@ -80,7 +80,7 @@ bot.onText(/\/remove_moderator/, (msg) => {
         if (args[4] == undefined)
             bot.sendMessage(msg.chat.id, "Argument Error");
         else {
-            const mod = db.lookup_mode_name(args[4]);
+            const mod = db.lookup_mod_name(args[4]);
             if (mod != undefined) {
                 db.remove_moderator(args[4]);
                 bot.sendMessage(msg.chat.id, mod.name + " is now no longer a moderator")
@@ -108,7 +108,7 @@ function submission_menu (song_id: number) :any {
     const a = song.artists == [] ? "add artist":"edit artists";
     const g = song.genres == [] ? "add genres":"edit genres";
 
-    return  JSON.stringify({
+    return  JSON.stringify({ 
         inline_keyboard: [[
             {text: t, callback_data: song_id + "-submission-menu-title"},
             {text: a, callback_data: song_id + "-submission-menu-artists"},
@@ -139,26 +139,6 @@ function handle_submission_menu_callback(action, callback_query) {
     }
 }
 
-function post_menu (song_id: number) : any {
-    const song = db.get_song(song_id);
-    const ratings = ['🗑️', '👎', '👌', '👍', '🔥']
-    const count_scores: (score: number) => number = (score => song.scores.filter(s => s.score == score).length);  
-    return  JSON.stringify({
-            inline_keyboard: [
-                ratings.map((r,i) => ({text:r + ' ' + count_scores(i+1),callback_data:song_id + "-score-" + i+1}))  
-            ,[
-            {
-                text: "Play!!",
-                url: song.url
-            }
-            ]]
-        });
-}
-
-function handle_score_callback (action: string, callback_query) {
-
-}
-
 function submission_text(song_id: number) : string {
     const song:Song = db.get_song(song_id);
     return ("<b>" + song.title + "</b>" +
@@ -176,7 +156,7 @@ function genre_keyboard(song_id: number, page: number) : any {
     
     const left_bound = 12 * page;
     const right_bound = Math.min(12 * (page+1), genres.length);
-    const p = genres.slice(left_bound, right_bound).map(g => ({text: (used_genres.find(a => a == g) == undefined ? "": "✅ ") + "#" + g, callback_data: song_id + "-" + g + "-genre-page-selection"}))
+    const p = genres.slice(left_bound, right_bound).map(g => ({text: (used_genres.find(a => a == g) == undefined ? "": "✅ ") + "#" + g, callback_data: song_id + "-" + page +"-" + g + "-genre-page-selection"}))
     return JSON.stringify({
         inline_keyboard: [
             p.slice(0,3), p.slice(3,6), p.slice(6,9), p.slice(9,12) 
@@ -198,7 +178,23 @@ function genre_keyboard(song_id: number, page: number) : any {
 }
 
 function handle_genre_page_selection_callback (action:string, callback_query) {
+    bot.answerCallbackQuery(callback_query.id);
+    const chat_id = callback_query.message.chat.id;
+    const msg_id = callback_query.message.message_id;
+    const song_id = parseInt(action.split("-")[0]);
+    const page = parseInt(action.split("-")[1]);
+    const genre = action.split("-")[2];
 
+    if (db.get_song(song_id).genres.find(g => g == genre)) {
+        db.remove_genre_from_song(song_id, genre);
+    } else {
+        db.add_genre_to_song(song_id, genre);
+    }
+
+    bot.editMessageText(submission_text(song_id), {chat_id: chat_id, message_id: msg_id, parse_mode: 'HTML'})
+    setTimeout(function() {
+        bot.editMessageReplyMarkup(genre_keyboard(song_id, page), {chat_id: chat_id, message_id: msg_id})
+    }, (200));
 }
 
 function handle_genre_page_switch_callback (action:string, callback_query) {
@@ -224,6 +220,28 @@ bot.onText(/\/submit/, (msg) => {
 bot.onText(/\/my_submissions/, (msg) => {
     bot.sendMessage(msg.chat.id, "TODO", {parse_mode: 'HTML'});
 });
+
+// POSTING
+
+function post_menu (song_id: number) : any {
+    const song = db.get_song(song_id);
+    const ratings = ['🗑️', '👎', '👌', '👍', '🔥']
+    const count_scores: (score: number) => number = (score => song.scores.filter(s => s.score == score).length);  
+    return  JSON.stringify({
+            inline_keyboard: [
+                ratings.map((r,i) => ({text:r + ' ' + count_scores(i+1),callback_data:song_id + "-score-" + i+1}))  
+            ,[
+            {
+                text: "Play!!",
+                url: song.url
+            }
+            ]]
+        });
+}
+
+function handle_score_callback (action: string, callback_query) {
+
+}
 
 // STATS
 

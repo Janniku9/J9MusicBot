@@ -4,7 +4,7 @@ import { default as FileSync } from "lowdb/adapters/FileSync";
 import {Song, Status, default_song} from "./song" 
 
 export class DataBaseHelper {
-    private db: lowdb.LowdbSync<any>;
+    private db;
 
     constructor(){
         this.initDatabase();
@@ -49,6 +49,17 @@ export class DataBaseHelper {
         return this.get_songs().filter(fun);
     }
 
+    remove_genre_from_song(song_id: number, genre: string) {
+        const new_genres = this.get_song(song_id).genres.filter(g => g != genre);
+        this.db.get('songs').find({uid: song_id}).assign({genres: new_genres}).write();
+    }
+
+    add_genre_to_song(song_id: number, genre: string) {
+        let new_genres = this.get_song(song_id).genres;
+        new_genres.push(genre);
+        this.db.get('songs').find({uid: song_id}).assign({genres: new_genres}).write();
+    }
+
     // MANAGE LISTS
     private get_db_list (list_name: string): any[] {
         const list: string[] = this.db.get(list_name).value();
@@ -90,7 +101,7 @@ export class DataBaseHelper {
         return this.db.get('owner').value();
     }
 
-    lookup_mode_name (id: string): {id:string, name:string} | undefined {
+    lookup_mod_name (id: string): {id:string, name:string} | undefined {
         const mods = this.get_moderators();
         return mods.find(m => m.id == id);
     }
@@ -103,7 +114,7 @@ export class DataBaseHelper {
         if (moderator == this.get_owner().id)
             return true;
 
-        const pair = this.lookup_mode_name(moderator);
+        const pair = this.lookup_mod_name(moderator);
         if (pair == undefined) 
             return false;
         return true;
@@ -118,7 +129,7 @@ export class DataBaseHelper {
     }
 
     remove_moderator (moderator: string) : boolean {
-        const pair = this.lookup_mode_name(moderator);
+        const pair = this.lookup_mod_name(moderator);
         if (pair == undefined) 
             return false;
         return this.remove_from_db_list('moderators', pair, this.comp_moderator);
