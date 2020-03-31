@@ -10,7 +10,10 @@ const bot : TelegramBot = new TelegramBot(TOKEN, {polling: true});
 // GENERAL STUFF
 
 bot.onText(/\/myid/, (msg) => {
-    bot.sendMessage(msg.chat.id, `Your ID: <b> ${msg.from?.id} </b>`, {parse_mode: 'HTML'});
+    const id = "" + msg.from?.id;
+    bot.sendMessage(msg.chat.id, "Your ID: <b> " + id + " </b> \n" + 
+            (db.is_owner(id) ? "You are the OWNER " : (db.is_moderator(id) ? "You are a MODERATOR":(db.is_trusted(id) ? "You are TRUSTED" : "")))
+            , {parse_mode: 'HTML'});
 });
 
 // GENRE STUFF
@@ -58,7 +61,7 @@ bot.onText(/\/remove_genre/, (msg) => {
 
 bot.onText(/\/add_moderator/, (msg) => {
     const from = "" + msg.from?.id;
-    if (db.is_moderator(from)) {
+    if (db.is_owner(from)) {
         const args = msg.text.match(/(\/add_moderator)((\s)((\d+)(\s)([^\s]+)))?/); 
         // 4 is pair, 5 is id and 7 is name
         if (args[4] == undefined)
@@ -75,7 +78,7 @@ bot.onText(/\/add_moderator/, (msg) => {
 
 bot.onText(/\/remove_moderator/, (msg) => {
     const from = "" + msg.from?.id;
-    if(db.is_moderator(from)) {
+    if(db.is_owner(from)) {
         const args = msg.text.match(/(\/remove_moderator)((\s)((\d+)))?/);
         if (args[4] == undefined)
             bot.sendMessage(msg.chat.id, "Argument Error");
@@ -96,6 +99,51 @@ bot.onText(/\/moderators/, (msg) => {
     if (db.is_moderator(from)) {
         const mods = db.get_moderators();
         bot.sendMessage(msg.chat.id, `<b>MODERATORS</b> \n\n${mods.map(m => "" + m.id + " | " + m.name + "\n").join('')}`, {parse_mode: 'HTML'});
+    } else
+        bot.sendMessage(msg.chat.id, "You don't have Permission to use this command!")
+});
+
+// TRUSTED STUFF
+bot.onText(/\/add_trusted/, (msg) => {
+    const from = "" + msg.from?.id;
+    if (db.is_moderator(from)) {
+        const args = msg.text.match(/(\/add_trusted)((\s)((\d+)(\s)([^\s]+)))?/); 
+        // 4 is pair, 5 is id and 7 is name
+        if (args[4] == undefined)
+            bot.sendMessage(msg.chat.id, "Argument Error");
+        else {
+            if (db.add_trusted({id: args[5], name: args[7]}))
+                bot.sendMessage(msg.chat.id, args[7] + " has been promoted to trusted");
+            else
+                bot.sendMessage(msg.chat.id, args[7] + " already is trusted");
+        }
+    } else 
+        bot.sendMessage(msg.chat.id, "You don't have Permission to use this command!")
+});
+
+bot.onText(/\/remove_trusted/, (msg) => {
+    const from = "" + msg.from?.id;
+    if(db.is_moderator(from)) {
+        const args = msg.text.match(/(\/remove_trusted)((\s)((\d+)))?/);
+        if (args[4] == undefined)
+            bot.sendMessage(msg.chat.id, "Argument Error");
+        else {
+            const t = db.lookup_trustedname(args[4]);
+            if (t != undefined) {
+                db.remove_trusted(args[4]);
+                bot.sendMessage(msg.chat.id, t.name + " is now no longer trusted")
+            } else
+                bot.sendMessage(msg.chat.id, args[4] + " is not a valid trusted id")
+        }
+    } else 
+        bot.sendMessage(msg.chat.id, "You don't have Permission to use this command!")
+});
+
+bot.onText(/\/trusted/, (msg) => {
+    const from = "" + msg.from?.id;
+    if (db.is_moderator(from)) {
+        const t = db.get_trusted();
+        bot.sendMessage(msg.chat.id, `<b>TRUSTED</b> \n\n${t.map(m => "" + m.id + " | " + m.name + "\n").join('')}`, {parse_mode: 'HTML'});
     } else
         bot.sendMessage(msg.chat.id, "You don't have Permission to use this command!")
 });

@@ -101,6 +101,10 @@ export class DataBaseHelper {
         return this.db.get('owner').value();
     }
 
+    is_owner(owner: string) : boolean {
+        return owner == this.get_owner().id;
+    } 
+
     lookup_mod_name (id: string): {id:string, name:string} | undefined {
         const mods = this.get_moderators();
         return mods.find(m => m.id == id);
@@ -133,6 +137,40 @@ export class DataBaseHelper {
         if (pair == undefined) 
             return false;
         return this.remove_from_db_list('moderators', pair, this.comp_moderator);
+    }
+
+    lookup_trustedname (id: string): {id:string, name:string} | undefined {
+        const trusted = this.get_trusted();
+        return trusted.find(t => t.id == id);
+    }
+
+    get_trusted () : {id: string, name: string}[] {
+        return this.get_db_list('trusted');
+    }
+
+    is_trusted (trusted: string) : boolean {
+        if (trusted == this.get_owner().id || this.is_moderator(trusted))
+            return true;
+
+        const pair = this.lookup_trustedname(trusted);
+        if (pair == undefined) 
+            return false;
+        return true;
+    }
+
+    comp_trusted (t1: {id: string, name:string}, t2: {id:string, name:string}) : boolean {
+        return t1.id == t2.id;
+    }
+
+    add_trusted (t: {id: string, name: string}) : boolean {
+        return this.add_to_db_list('trusted', t, this.comp_trusted);
+    }
+
+    remove_trusted (t: string) : boolean {
+        const pair = this.lookup_trustedname(t);
+        if (pair == undefined) 
+            return false;
+        return this.remove_from_db_list('trusted', pair, this.comp_trusted);
     }
 
     // GENRES
