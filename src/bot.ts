@@ -102,6 +102,12 @@ bot.onText(/\/moderators/, (msg) => {
 
 // SUBMISSION STUFF
 
+function empty_menu (): any {
+    return JSON.stringify({
+        inline_keyboard: [[]]
+    })
+}
+
 function submission_menu (song_id: number) :any {
     const song = db.get_song(song_id);
     const t = song.title == "" ? "add title":"edit title";
@@ -126,16 +132,19 @@ function handle_submission_menu_callback(action, callback_query) {
     const msg_id = callback_query.message.message_id;
     const song_id = action.split("-")[0];
 
+    const msg_info = {chat_id: chat_id, message_id: msg_id};
+
     if (action.includes("submit")) {
         bot.sendMessage(chat_id, "Submitted. TODO")
     } else if (action.includes("cancel")) {
-        bot.sendMessage(chat_id, "cancelled. TODO")
+        bot.editMessageReplyMarkup(empty_menu(), msg_info)
+        bot.deleteMessage(chat_id, msg_id);
     } else if (action.includes("title")) {
-        bot.sendMessage(chat_id, "title. TODO")
+        bot.sendMessage(chat_id, "title. TODO");
     } else if (action.includes("artists")) {
         bot.sendMessage(chat_id, "artists. TODO")
     } else if (action.includes("genres")) {
-        bot.editMessageReplyMarkup(genre_keyboard(song_id, 0), {chat_id: chat_id, message_id: msg_id})
+        bot.editMessageReplyMarkup(genre_keyboard(song_id, 0), msg_info)
     }
 }
 
@@ -201,20 +210,21 @@ function handle_genre_page_switch_callback (action:string, callback_query) {
     bot.answerCallbackQuery(callback_query.id);
     const chat_id = callback_query.message.chat.id;
     const msg_id = callback_query.message.message_id;
+    const msg_info = {chat_id: chat_id, message_id: msg_id};
 
     if (action.includes('done-genre-page')) {
         const song_id = parseInt(action.split('-')[0]);
-        bot.editMessageReplyMarkup(submission_menu(song_id), {chat_id: chat_id, message_id: msg_id})
+        bot.editMessageReplyMarkup(submission_menu(song_id), msg_info)
     } else {
         const song_id = parseInt(action.split('-')[0]);
         const page = parseInt(action.split('-')[1]);
-        bot.editMessageReplyMarkup(genre_keyboard(song_id, page), {chat_id: chat_id, message_id: msg_id})
+        bot.editMessageReplyMarkup(genre_keyboard(song_id, page), msg_info)
     }
 }
 
 bot.onText(/\/submit/, (msg) => {
     const song_id = 1;
-    bot.sendMessage(msg.chat.id, submission_text(song_id), {parse_mode: 'HTML', reply_markup: submission_menu(song_id)});
+    bot.sendMessage(msg.chat.id, submission_text(song_id), {parse_mode: 'HTML', reply_markup: submission_menu(song_id)})
 });
 
 bot.onText(/\/my_submissions/, (msg) => {
@@ -256,6 +266,17 @@ bot.onText(/\/top/, (msg) => {
 bot.onText(/\/feedback/, (msg) => {
     bot.sendMessage(msg.chat.id, "TODO", {parse_mode: 'HTML'});
 });
+
+// INLINE QUERYS
+
+bot.on('inline_query', ctx => {
+    const query = ctx.query;
+    const user = ctx.from.id;
+
+    const no_res = [{id:'no_res', type: 'article' as 'article', title:"not a valid bo result found", input_message_content: {message_text: "no result found for " + query}}]
+
+    bot.answerInlineQuery(ctx.id, no_res)
+})
 
 // CALLBACKS
 

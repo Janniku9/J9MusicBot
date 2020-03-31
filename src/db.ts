@@ -15,7 +15,7 @@ export class DataBaseHelper {
     private initDatabase() {
         const adapter = new FileSync('db.json');
         this.db = lowdb(adapter);
-        this.db.defaults({owner: {}, moderators: [], songs: [], genres:[], uid: 0}).write();
+        this.db.defaults({owner: {}, moderators: [], trusted: [], songs: [], genres:[], uid: 0}).write();
     }
 
     private get_uid() : number {
