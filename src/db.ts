@@ -1,7 +1,8 @@
  // imports for local json db
 import lowdb from "lowdb";
 import { default as FileSync } from "lowdb/adapters/FileSync";
-import {Song, Status, default_song} from "./song" 
+import {Song, Status, default_song} from "./types/song" 
+import {Question} from "./types/question" 
 
 export class DataBaseHelper {
     private db;
@@ -15,7 +16,7 @@ export class DataBaseHelper {
     private initDatabase() {
         const adapter = new FileSync('db.json');
         this.db = lowdb(adapter);
-        this.db.defaults({owner: {}, moderators: [], trusted: [], songs: [], genres:[], uid: 0}).write();
+        this.db.defaults({owner: {}, moderators: [], trusted: [], songs: [], genres:[], questions:[], uid: 0}).write();
     }
 
     private get_uid() : number {
@@ -192,5 +193,34 @@ export class DataBaseHelper {
 
     remove_genre (genre: string) : boolean {
         return this.remove_from_db_list('genres', genre, this.comp_genre);
+    }
+
+    // QUESTIONS
+    comp_question (q1: Question, q2: Question) {
+        return q1.qid == q2.qid;
+    }
+
+    lookup_qid(qid: number) {
+        const questions = this.get_open_questions();
+        return questions.find(q => q.qid == qid);
+    }
+
+    get_mex_qid() {
+        const questions = this.get_open_questions().sort((a,b) => a.qid - b.qid);
+        return questions.reduce((qid, q) => qid + (qid == q.qid ? 1 : 0), 0);
+    }
+
+    get_open_questions() {
+        return this.get_db_list('questions');
+    }
+
+    add_question(user: number, type: string, options: {}) {
+        const question = {qid: this.get_mex_qid(), user: user, type: type, options: options};
+        this.add_to_db_list('questions', question, this.comp_question)
+    }
+
+    close_question(qid: number) {
+        const question : Question = {qid: qid, user: 0, type: "", options: {}};
+        return this.remove_from_db_list('genres', question, this.comp_genre);
     }
 }
