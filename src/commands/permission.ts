@@ -96,7 +96,7 @@ export  const add_trusted = {pattern: "/add_trusted",
     }
 };
 
-export  const remove_trustded = {pattern: "/remove_trusted", 
+export  const remove_trusted = {pattern: "/remove_trusted", 
     handler: function command_handler(bot: TelegramBot, db: DataBaseHelper, msg: TelegramBot.Message) {
         const from = "" + msg.from?.id;
         if(db.is_moderator(from)) {
