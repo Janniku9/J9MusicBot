@@ -36,8 +36,17 @@ import {submission_menu_handler} from "./menus/submission_menu"
 import {genre_menu_switch_handler, genre_menu_selection_handler} from "./menus/genre_menu"
 import {title_menu_handler} from "./menus/title_menu"
 import {artist_add_menu_handler, artist_menu_handler, artist_remove_menu_handler} from "./menus/artist_menu"
+import {score_handler} from "./menus/post_menu"
 
-const callbacks = [submission_menu_handler, genre_menu_switch_handler, genre_menu_selection_handler, title_menu_handler, artist_add_menu_handler, artist_menu_handler, artist_remove_menu_handler]
+const callbacks = [
+        submission_menu_handler,
+        genre_menu_switch_handler, genre_menu_selection_handler,
+        title_menu_handler,
+        artist_add_menu_handler,
+        artist_menu_handler,
+        artist_remove_menu_handler,
+        score_handler
+    ]
 
 export class CallbackHandler {
     private callback_resolver: {[pattern: string] : (bot: TelegramBot, db: DataBaseHelper, cbq: TelegramBot.CallbackQuery) => void} = {};

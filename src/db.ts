@@ -27,15 +27,15 @@ export class DataBaseHelper {
 
     // SONG STUFF
 
-    create_song(url): boolean {
+    create_song(url, author): number {
         if (this.db.get('songs').value().find(s => url == s.url)) 
-            return false;
+            return -1;
 
-        const song: Song = {...default_song, url: url, uid: this.get_uid(), creation_date: new Date(), };
+        const song: Song = {...default_song, url: url, author: author, uid: this.get_uid(), creation_date: new Date(), };
 
         this.db.update('songs',s => {s.push(song); return s}).write();
         
-        return true;
+        return song.uid;
     }
 
     private get_songs (): Song[] {
@@ -74,6 +74,12 @@ export class DataBaseHelper {
         let new_artists = this.get_song(song_id).artists;
         new_artists.push(artist);
         this.db.get('songs').find({uid: song_id}).assign({artists: new_artists}).write();
+    }
+
+    set_rating(song_id: number, user: number, score: number) {
+        let scores = this.get_song(song_id).scores.filter(s => s.user != "" + user);
+        scores.push({user: "" + user, score: score});
+        this.db.get('songs').find({uid: song_id}).assign({scores: scores}).write();
     }
 
     // MANAGE LISTS

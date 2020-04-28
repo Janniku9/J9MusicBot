@@ -7,6 +7,9 @@ import {genre_menu} from "./genre_menu"
 import {empty_menu} from "./empty_menu"
 import {title_menu} from "./title_menu"
 import {artist_menu} from "./artist_menu"
+import {post_menu} from "./post_menu"
+
+import {CHANNEL} from "../const"
 
 export function submission_menu (db: DataBaseHelper, song_id: number) :any {
     const song = db.get_song(song_id);
@@ -48,7 +51,11 @@ export const submission_menu_handler = {pattern: "submission_menu",
         const msg_info : TelegramBot.EditMessageReplyMarkupOptions = {chat_id: chat_id, message_id: msg_id};
 
         if (action == "submit") {
-            bot.sendMessage(chat_id, "Submitted. TODO")
+            if(db.is_trusted("" + cbq.from?.id)) {
+                bot.sendMessage(CHANNEL, submission_text(db, song_id), {parse_mode: 'HTML', reply_markup: post_menu(db, song_id)});
+            } else
+                bot.sendMessage(cbq.message.chat.id, "You don't have permission to make submissions")
+                bot.editMessageReplyMarkup(empty_menu(), msg_info)
         } else if (action == "cancel") {
             bot.editMessageReplyMarkup(empty_menu(), msg_info)
             bot.deleteMessage(chat_id, "" + msg_id);

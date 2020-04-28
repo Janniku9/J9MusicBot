@@ -10,8 +10,19 @@ import {submission_menu, submission_text} from '../menus/submission_menu'
 */
 export  const submit = {pattern: "/submit", 
     handler: function command_handler(bot: TelegramBot, db: DataBaseHelper, msg: TelegramBot.Message) {
-        const song_id = 1;
-        bot.sendMessage(msg.chat.id, submission_text(db, song_id), {parse_mode: 'HTML', reply_markup: submission_menu(db, song_id)})
+        const url = msg.text.match(/(\/submit\s)(https:\/\/www\.youtube\.com\/watch\?v=[\S]*)/)[2];
+
+        if (url === undefined) {
+            bot.sendMessage(msg.chat.id, "Invalid Url");
+            return;
+        }
+
+        const song_id = db.create_song(url, msg.from?.id);
+        
+        if (song_id == -1)
+            bot.sendMessage(msg.chat.id, "this song already has been submitted");
+        else
+            bot.sendMessage(msg.chat.id, submission_text(db, song_id), {parse_mode: 'HTML', reply_markup: submission_menu(db, song_id)})
     }
 };
 
