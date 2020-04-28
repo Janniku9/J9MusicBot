@@ -34,8 +34,10 @@ export class CommandHandler {
 
 import {submission_menu_handler} from "./menus/submission_menu"
 import {genre_menu_switch_handler, genre_menu_selection_handler} from "./menus/genre_menu"
+import {title_menu_handler} from "./menus/title_menu"
+import {artist_add_menu_handler, artist_menu_handler, artist_remove_menu_handler} from "./menus/artist_menu"
 
-const callbacks = [submission_menu_handler, genre_menu_switch_handler, genre_menu_selection_handler]
+const callbacks = [submission_menu_handler, genre_menu_switch_handler, genre_menu_selection_handler, title_menu_handler, artist_add_menu_handler, artist_menu_handler, artist_remove_menu_handler]
 
 export class CallbackHandler {
     private callback_resolver: {[pattern: string] : (bot: TelegramBot, db: DataBaseHelper, cbq: TelegramBot.CallbackQuery) => void} = {};
@@ -60,8 +62,9 @@ export class CallbackHandler {
 }
 
 import {title_question} from "./menus/title_menu"
+import {artist_question} from "./menus/artist_menu"
 
-const questions = [title_question]
+const questions = [title_question, artist_question]
 
 export class QuestionHandler {
     private question_resolver: {[type: string] : (bot: TelegramBot, db: DataBaseHelper, msg: TelegramBot.Message, q: Question) => void} = {};

@@ -6,6 +6,7 @@ import {Question} from "../types/question";
 import {genre_menu} from "./genre_menu"
 import {empty_menu} from "./empty_menu"
 import {title_menu} from "./title_menu"
+import {artist_menu} from "./artist_menu"
 
 export function submission_menu (db: DataBaseHelper, song_id: number) :any {
     const song = db.get_song(song_id);
@@ -58,7 +59,7 @@ export const submission_menu_handler = {pattern: "submission_menu",
             db.open_new_question(user, "title", {song_id: song_id, chat_id: chat_id, message_id: msg_id})
 
         } else if (action == "artists") {
-            bot.sendMessage(chat_id, "artists. TODO")
+            bot.editMessageReplyMarkup(artist_menu(db, song_id), msg_info);
         } else if (action == "genres") {
             bot.editMessageReplyMarkup(genre_menu(db, song_id, 0), msg_info)
         }

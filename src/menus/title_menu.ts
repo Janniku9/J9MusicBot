@@ -10,12 +10,12 @@ export function title_menu (db: DataBaseHelper, song_id: number) : any {
             inline_keyboard: [[
                 {
                     text: "waiting for new title",
-                    callback_data: "title_menu-info"
+                    callback_data: "title_menu-info-" + song_id
                 }
             ],[
             {
                 text: "cancel",
-                callback_data: "title_menu-cancel-"
+                callback_data: "title_menu-cancel-" + song_id
             }
             ]]
         });
@@ -43,6 +43,8 @@ export const title_menu_handler = {pattern: "title_menu",
 
         const user = cbq.from?.id;
         const action = cbq.data.split("-")[1];
+        const song_id = parseInt(cbq.data.split("-")[2]);
+
         while (action == "cancel" && db.lookup_user(user) !== undefined) {
             const q : Question = db.lookup_user(user);
             db.close_question(q.qid);

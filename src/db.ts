@@ -65,6 +65,17 @@ export class DataBaseHelper {
         this.db.get('songs').find({uid: song_id}).assign({title: new_title}).write();
     }
 
+    remove_artist_from_song(song_id: number, artist: string) {
+        const new_artists = this.get_song(song_id).artists.filter(a => a != artist);
+        this.db.get('songs').find({uid: song_id}).assign({artists: new_artists}).write();
+    }
+
+    add_artist_to_song(song_id: number, artist: string) {
+        let new_artists = this.get_song(song_id).artists;
+        new_artists.push(artist);
+        this.db.get('songs').find({uid: song_id}).assign({artists: new_artists}).write();
+    }
+
     // MANAGE LISTS
     private get_db_list (list_name: string): any[] {
         const list: string[] = this.db.get(list_name).value();
