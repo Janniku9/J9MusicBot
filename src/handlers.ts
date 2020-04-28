@@ -1,6 +1,8 @@
 import {DataBaseHelper} from "./db";
 import TelegramBot from 'node-telegram-bot-api';
 
+import {Question} from "./types/question"
+
 import {myid} from "./commands/general"
 import {genres, add_genre, remove_genre} from "./commands/genre"
 import {submit} from "./commands/submission"
@@ -54,5 +56,33 @@ export class CallbackHandler {
 
         if (this.callback_resolver[action] !== undefined) 
             this.callback_resolver[action](bot, db, cbq);
+    }
+}
+
+import {title_question} from "./menus/title_menu"
+
+const questions = [title_question]
+
+export class QuestionHandler {
+    private question_resolver: {[type: string] : (bot: TelegramBot, db: DataBaseHelper, msg: TelegramBot.Message, q: Question) => void} = {};
+
+    constructor(){
+        this.create_question_resolver();
+    }
+
+    private create_question_resolver() {
+        
+        questions.forEach(q => {
+            this.question_resolver[q.type] = q.handler
+        });
+    }
+
+    public resolve_question (bot: TelegramBot, db: DataBaseHelper, msg: TelegramBot.Message) {
+        const user = msg.from?.id;
+        if (db.lookup_user(user) !== undefined) {
+            const q = db.lookup_user(user);
+            db.close_question(q.qid);
+            this.question_resolver[q.type](bot, db, msg, q);
+        }
     }
 }

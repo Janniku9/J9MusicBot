@@ -61,6 +61,10 @@ export class DataBaseHelper {
         this.db.get('songs').find({uid: song_id}).assign({genres: new_genres}).write();
     }
 
+    set_title(song_id: number, new_title: string) {
+        this.db.get('songs').find({uid: song_id}).assign({title: new_title}).write();
+    }
+
     // MANAGE LISTS
     private get_db_list (list_name: string): any[] {
         const list: string[] = this.db.get(list_name).value();
@@ -93,7 +97,7 @@ export class DataBaseHelper {
         if (!this.is_in_db_list(list_name, element, comp))
             return false;
 
-        this.db.set(list_name, list.filter(e => e != element)).write();
+        this.db.set(list_name, list.filter(e => !comp(e, element))).write();
         return true;
     }
 
@@ -196,6 +200,10 @@ export class DataBaseHelper {
     }
 
     // QUESTIONS
+    get_open_questions() {
+        return this.get_db_list('questions');
+    }
+
     comp_question (q1: Question, q2: Question) {
         return q1.qid == q2.qid;
     }
@@ -205,13 +213,14 @@ export class DataBaseHelper {
         return questions.find(q => q.qid == qid);
     }
 
+    lookup_user(user: number) {
+        const questions = this.get_open_questions();
+        return questions.find(q => q.user == user);
+    }
+
     get_mex_qid() {
         const questions = this.get_open_questions().sort((a,b) => a.qid - b.qid);
         return questions.reduce((qid, q) => qid + (qid == q.qid ? 1 : 0), 0);
-    }
-
-    get_open_questions() {
-        return this.get_db_list('questions');
     }
 
     add_question(user: number, type: string, options: {}) {
@@ -221,6 +230,14 @@ export class DataBaseHelper {
 
     close_question(qid: number) {
         const question : Question = {qid: qid, user: 0, type: "", options: {}};
-        return this.remove_from_db_list('genres', question, this.comp_genre);
+        return this.remove_from_db_list('questions', question, this.comp_question);
+    }
+
+    open_new_question(user: number, type: string, options: {}) {
+        while (this.lookup_user(user) !== undefined) {
+            const q = this.lookup_user(user);
+            this.close_question(q.qid);
+        } 
+        this.add_question(user, type, options);
     }
 }

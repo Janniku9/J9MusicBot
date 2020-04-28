@@ -2,7 +2,7 @@ import {DataBaseHelper} from "./db";
 import TelegramBot from 'node-telegram-bot-api';
 import {TOKEN, CHANNEL} from "./const";
 import {Song} from "./types/song"
-import {CommandHandler, CallbackHandler} from "./handlers"
+import {CommandHandler, CallbackHandler, QuestionHandler} from "./handlers"
 
 const db:DataBaseHelper = new DataBaseHelper();
 
@@ -12,10 +12,13 @@ const ch: CommandHandler = new CommandHandler();
 
 const cbh: CallbackHandler = new CallbackHandler(); 
 
+const qh: QuestionHandler = new QuestionHandler();
+
 
 // COMMAND HANDLER
 bot.on('text', (msg) => {
     ch.resolve_command(bot, db, msg);
+    qh.resolve_question(bot, db, msg);
 });
 
 

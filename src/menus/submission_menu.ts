@@ -1,9 +1,11 @@
 import TelegramBot from 'node-telegram-bot-api';
 import {DataBaseHelper} from "../db";
 import {Song} from "../types/song";
+import {Question} from "../types/question";
 
 import {genre_menu} from "./genre_menu"
 import {empty_menu} from "./empty_menu"
+import {title_menu} from "./title_menu"
 
 export function submission_menu (db: DataBaseHelper, song_id: number) :any {
     const song = db.get_song(song_id);
@@ -50,7 +52,11 @@ export const submission_menu_handler = {pattern: "submission_menu",
             bot.editMessageReplyMarkup(empty_menu(), msg_info)
             bot.deleteMessage(chat_id, "" + msg_id);
         } else if (action == "title") {
-            bot.sendMessage(chat_id, "title. TODO");
+            const user = cbq.from?.id;
+
+            bot.editMessageReplyMarkup(title_menu(db, song_id), msg_info);
+            db.open_new_question(user, "title", {song_id: song_id, chat_id: chat_id, message_id: msg_id})
+
         } else if (action == "artists") {
             bot.sendMessage(chat_id, "artists. TODO")
         } else if (action == "genres") {
