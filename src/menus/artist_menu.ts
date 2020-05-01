@@ -92,7 +92,7 @@ export const artist_remove_menu_handler = {pattern: "artist_remove_menu",
                 bot.editMessageReplyMarkup(artist_menu(db, song_id), {chat_id: cbq.message.chat.id, message_id: cbq.message.message_id}) 
             }, (200));
         } else
-            bot.editMessageReplyMarkup(artist_menu(db, song_id), {chat_id: cbq.message.chat.id, message_id: cbq.message.message_id}) 
+            bot.editMessageReplyMarkup(submission_menu(db, song_id), {chat_id: cbq.message.chat.id, message_id: cbq.message.message_id}) 
     }
 }
 
@@ -110,7 +110,8 @@ export const artist_add_menu_handler = {pattern: "artist_add_menu",
             db.close_question(q.qid);
         }
 
-        bot.editMessageReplyMarkup(artist_menu(db, song_id), {chat_id: cbq.message.chat.id, message_id: cbq.message.message_id})
+        if (action == "cancel")
+            bot.editMessageReplyMarkup(artist_menu(db, song_id), {chat_id: cbq.message.chat.id, message_id: cbq.message.message_id})
     }
 }
 
@@ -125,7 +126,8 @@ export const artist_question = {type: "artist",
 
         bot.editMessageText(submission_text(db, song_id), {chat_id: q.options.chat_id, message_id: q.options.message_id, parse_mode: 'HTML'})
         setTimeout(function() {
-            bot.editMessageReplyMarkup(artist_menu(db, song_id), {chat_id: q.options.chat_id, message_id: q.options.message_id}) 
+            db.open_new_question(q.user, "artist", q.options);
+            bot.editMessageReplyMarkup(artist_add_menu(db, song_id), {chat_id: q.options.chat_id, message_id: q.options.message_id}) 
         }, (200));
     }
 }

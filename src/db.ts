@@ -28,7 +28,7 @@ export class DataBaseHelper {
     // SONG STUFF
 
     create_song(url, author): number {
-        if (this.db.get('songs').value().find(s => url == s.url)) 
+        if (this.db.get('songs').value().find(s => url == s.url && s.status == Status.APPROVED)) 
             return -1;
 
         const song: Song = {...default_song, url: url, author: author, uid: this.get_uid(), creation_date: new Date(), };

@@ -6,7 +6,7 @@ import {Question} from "../types/question";
 import {genre_menu} from "./genre_menu"
 import {empty_menu} from "./empty_menu"
 import {title_menu} from "./title_menu"
-import {artist_menu} from "./artist_menu"
+import {artist_menu, artist_add_menu} from "./artist_menu"
 import {post_menu} from "./post_menu"
 import {notes_menu} from "./notes_menu"
 import {application_menu} from "./application_menu"
@@ -52,7 +52,7 @@ export const submission_menu_handler = {pattern: "submission_menu",
 
         const chat_id = cbq.message.chat.id;
         const msg_id = cbq.message.message_id;
-        
+        const user = cbq.from?.id;        
 
         const msg_info : TelegramBot.EditMessageReplyMarkupOptions = {chat_id: chat_id, message_id: msg_id};
 
@@ -65,14 +65,16 @@ export const submission_menu_handler = {pattern: "submission_menu",
                 
                 bot.sendMessage(db.get_owner().id, submission_text(db, song_id), {parse_mode: 'HTML', reply_markup: application_menu(db, song_id)})
         } else if (action == "cancel") {
-            bot.editMessageReplyMarkup(empty_menu(), msg_info)
             bot.deleteMessage(chat_id, "" + msg_id);
         } else if (action == "title") {
-            const user = cbq.from?.id;
             bot.editMessageReplyMarkup(title_menu(db, song_id), msg_info);
             db.open_new_question(user, "title", {song_id: song_id, chat_id: chat_id, message_id: msg_id})
         } else if (action == "artists") {
-            bot.editMessageReplyMarkup(artist_menu(db, song_id), msg_info);
+            if (db.get_song(song_id).artists.length == 0) {
+                bot.editMessageReplyMarkup(artist_add_menu(db, song_id), msg_info);
+                db.open_new_question(user, "artist", {song_id: song_id, chat_id: chat_id, message_id: msg_id});
+            } else 
+                bot.editMessageReplyMarkup(artist_menu(db, song_id), msg_info);
         } else if (action == "notes") {
             const user = cbq.from?.id;
             bot.editMessageReplyMarkup(notes_menu(db, song_id), msg_info);
