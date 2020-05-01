@@ -65,6 +65,10 @@ export class DataBaseHelper {
         this.db.get('songs').find({uid: song_id}).assign({title: new_title}).write();
     }
 
+    set_notes(song_id: number, new_notes: string) {
+        this.db.get('songs').find({uid: song_id}).assign({notes: new_notes}).write();
+    }
+
     remove_artist_from_song(song_id: number, artist: string) {
         const new_artists = this.get_song(song_id).artists.filter(a => a != artist);
         this.db.get('songs').find({uid: song_id}).assign({artists: new_artists}).write();
@@ -80,6 +84,18 @@ export class DataBaseHelper {
         let scores = this.get_song(song_id).scores.filter(s => s.user != "" + user);
         scores.push({user: "" + user, score: score});
         this.db.get('songs').find({uid: song_id}).assign({scores: scores}).write();
+    }
+
+    post_song(song_id: number, message_id: number, chat_id: number) {
+        this.db.get('songs').find({uid: song_id}).assign({status: Status.APPROVED, message_id: message_id, chat_id: chat_id}).write();
+    }
+
+    reject(song_id: number, mod: string) {
+        this.db.get('songs').find({uid: song_id}).assign({status: Status.DENIED, moderator: mod}).write();
+    }
+
+    accept(song_id: number, mod: string) {
+        this.db.get('songs').find({uid: song_id}).assign({moderator: mod}).write();
     }
 
     // MANAGE LISTS
@@ -119,7 +135,7 @@ export class DataBaseHelper {
     }
 
     // MODERATORS
-    private get_owner() : {id:string, name:string} {
+    get_owner() : {id:string, name:string} {
         return this.db.get('owner').value();
     }
 

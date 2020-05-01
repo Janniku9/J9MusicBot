@@ -3,12 +3,25 @@ import TelegramBot from 'node-telegram-bot-api';
 
 import {Question} from "./types/question"
 
-import {myid} from "./commands/general"
+import {myid, channel} from "./commands/general"
 import {genres, add_genre, remove_genre} from "./commands/genre"
 import {submit} from "./commands/submission"
 import {moderators, add_moderator, remove_moderator, trusted, add_trusted, remove_trusted} from "./commands/permission"
 
-const commands = [myid, genres, add_genre, remove_genre, submit, moderators, add_moderator, remove_moderator, trusted, add_trusted, remove_trusted];
+const commands = [
+    myid, 
+    genres,
+    add_genre,
+    remove_genre,
+    submit,
+    moderators,
+    add_moderator,
+    remove_moderator,
+    trusted,
+    add_trusted,
+    remove_trusted,
+    channel
+];
 
 export class CommandHandler {
     private command_resolver: {[pattern: string] : (bot: TelegramBot, db: DataBaseHelper, msg: TelegramBot.Message) => void} = {};
@@ -37,6 +50,8 @@ import {genre_menu_switch_handler, genre_menu_selection_handler} from "./menus/g
 import {title_menu_handler} from "./menus/title_menu"
 import {artist_add_menu_handler, artist_menu_handler, artist_remove_menu_handler} from "./menus/artist_menu"
 import {score_handler} from "./menus/post_menu"
+import {notes_menu_handler} from "./menus/notes_menu"
+import {application_handler} from "./menus/application_menu"
 
 const callbacks = [
         submission_menu_handler,
@@ -45,7 +60,9 @@ const callbacks = [
         artist_add_menu_handler,
         artist_menu_handler,
         artist_remove_menu_handler,
-        score_handler
+        score_handler,
+        notes_menu_handler,
+        application_handler
     ]
 
 export class CallbackHandler {
@@ -72,8 +89,9 @@ export class CallbackHandler {
 
 import {title_question} from "./menus/title_menu"
 import {artist_question} from "./menus/artist_menu"
+import {notes_question} from "./menus/notes_menu"
 
-const questions = [title_question, artist_question]
+const questions = [title_question, artist_question, notes_question]
 
 export class QuestionHandler {
     private question_resolver: {[type: string] : (bot: TelegramBot, db: DataBaseHelper, msg: TelegramBot.Message, q: Question) => void} = {};

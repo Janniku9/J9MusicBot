@@ -8,21 +8,26 @@ import {empty_menu} from "./empty_menu"
 import {title_menu} from "./title_menu"
 import {artist_menu} from "./artist_menu"
 import {post_menu} from "./post_menu"
+import {notes_menu} from "./notes_menu"
+import {application_menu} from "./application_menu"
 
-import {CHANNEL} from "../const"
+import {post_song} from "../util/post"
 
 export function submission_menu (db: DataBaseHelper, song_id: number) :any {
     const song = db.get_song(song_id);
     const t = song.title == "" ? "add title":"edit title";
-    const a = song.artists == [] ? "add artist":"edit artists";
-    const g = song.genres == [] ? "add genres":"edit genres";
+    const a = song.artists.length == 0 ? "add artist":"edit artists";
+    const g = song.genres.length == 0 ? "add genres":"edit genres";
+    const n = song.notes == "" ? "add notes":"edit notes";
 
     return  JSON.stringify({ 
         inline_keyboard: [[
             {text: t, callback_data: "submission_menu-title-" + song_id},
             {text: a, callback_data: "submission_menu-artists-" + song_id},
             {text: g, callback_data: "submission_menu-genres-" + song_id}
-        ], [
+        ],[
+            {text: n, callback_data: "submission_menu-notes-" + song_id}
+        ],[
             {text: "submit", callback_data: "submission_menu-submit-" + song_id},
             {text: "cancel", callback_data: "submission_menu-cancel-" + song_id}
         ]]
@@ -34,6 +39,7 @@ export function submission_text(db: DataBaseHelper, song_id: number) : string {
     return ("<b>" + song.title + "</b>" +
         "\n<b><i>Artists:</i></b>   " + song.artists.map(a => "#" + a + " ").join('') +
         "\n<b><i>Genres:</i></b>  " + song.genres.map(g => "#" + g  + " ").join('') + 
+        (song.notes != "" ? ("\n<b><i>Notes:</i></b>    " + song.notes) : "") + 
       "\n\n<b><i>Url:</i></b>         " + song.url);
 }
 
@@ -52,22 +58,26 @@ export const submission_menu_handler = {pattern: "submission_menu",
 
         if (action == "submit") {
             if(db.is_trusted("" + cbq.from?.id)) {
-                bot.sendMessage(CHANNEL, submission_text(db, song_id), {parse_mode: 'HTML', reply_markup: post_menu(db, song_id)});
+                post_song(bot, db, song_id);
             } else
-                bot.sendMessage(cbq.message.chat.id, "You don't have permission to make submissions")
+                bot.sendMessage(cbq.message.chat.id, "Waiting for approval!")
                 bot.editMessageReplyMarkup(empty_menu(), msg_info)
+                
+                bot.sendMessage(db.get_owner().id, submission_text(db, song_id), {parse_mode: 'HTML', reply_markup: application_menu(db, song_id)})
         } else if (action == "cancel") {
             bot.editMessageReplyMarkup(empty_menu(), msg_info)
             bot.deleteMessage(chat_id, "" + msg_id);
         } else if (action == "title") {
             const user = cbq.from?.id;
-
             bot.editMessageReplyMarkup(title_menu(db, song_id), msg_info);
             db.open_new_question(user, "title", {song_id: song_id, chat_id: chat_id, message_id: msg_id})
-
         } else if (action == "artists") {
             bot.editMessageReplyMarkup(artist_menu(db, song_id), msg_info);
-        } else if (action == "genres") {
+        } else if (action == "notes") {
+            const user = cbq.from?.id;
+            bot.editMessageReplyMarkup(notes_menu(db, song_id), msg_info);
+            db.open_new_question(user, "notes", {song_id: song_id, chat_id: chat_id, message_id: msg_id})
+        }else if (action == "genres") {
             bot.editMessageReplyMarkup(genre_menu(db, song_id, 0), msg_info)
         }
     }

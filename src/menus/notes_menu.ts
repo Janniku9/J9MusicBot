@@ -6,29 +6,29 @@ import {submission_menu, submission_text} from "./submission_menu"
 
 import {sanitize} from "../util/sanitize"
 
-export function title_menu (db: DataBaseHelper, song_id: number) : any {
+export function notes_menu (db: DataBaseHelper, song_id: number) : any {
     const song: Song = db.get_song(song_id);
     return  JSON.stringify({
             inline_keyboard: [[
                 {
-                    text: "waiting for new title",
-                    callback_data: "title_menu-info-" + song_id
+                    text: "waiting for new notes",
+                    callback_data: "notes_menu-info-" + song_id
                 }
             ],[
             {
                 text: "cancel",
-                callback_data: "title_menu-cancel-" + song_id
+                callback_data: "notes_menu-cancel-" + song_id
             }
             ]]
         });
 }
 
-export const title_question = {type: "title", 
+export const notes_question = {type: "notes", 
     handler: function (bot: TelegramBot, db: DataBaseHelper, msg: TelegramBot.Message, q: Question) {
         const song_id = q.options.song_id;
 
-        const new_title = sanitize(msg.text); 
-        db.set_title(song_id, new_title);
+        const new_notes = sanitize(msg.text); 
+        db.set_notes(song_id, new_notes);
 
         bot.deleteMessage(msg.chat.id, "" + msg.message_id)
 
@@ -39,7 +39,7 @@ export const title_question = {type: "title",
     }
 }
 
-export const title_menu_handler = {pattern: "title_menu",
+export const notes_menu_handler = {pattern: "notes_menu",
     handler: function callback_handler(bot: TelegramBot, db: DataBaseHelper, cbq: TelegramBot.CallbackQuery) {
         bot.answerCallbackQuery(cbq.id);
 

@@ -4,6 +4,8 @@ import {Song} from "../types/song";
 import {Question} from "../types/question";
 import {submission_menu, submission_text} from "./submission_menu"
 
+import {sanitize} from "../util/sanitize"
+
 export function artist_menu (db: DataBaseHelper, song_id: number) : any {
     const song: Song = db.get_song(song_id);
     return  JSON.stringify({
@@ -116,7 +118,7 @@ export const artist_question = {type: "artist",
     handler: function (bot: TelegramBot, db: DataBaseHelper, msg: TelegramBot.Message, q: Question) {
         const song_id = q.options.song_id;
 
-        const artist = msg.text.replace(" ", "_").replace("-", "_").toUpperCase(); 
+        const artist = sanitize(msg.text).replace(" ", "_").replace("-", "_").toUpperCase(); 
         db.add_artist_to_song(song_id, artist);
 
         bot.deleteMessage(msg.chat.id, "" + msg.message_id)

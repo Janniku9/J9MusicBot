@@ -11,16 +11,18 @@ export const default_song = {
     title: "",
     artists: [],
     genres: [],
+    notes: "",
 
     author: "",
     status: Status.CREATING,
-
-    moderator: "",
     reason_of_denial: "",
 
     creation_date: undefined,
     submission_date: undefined,
     approval_date: undefined,
+
+    message_id: -1,
+    chat_id: -1,
     scores: []
 }
 
@@ -30,17 +32,19 @@ export type Song = {
     title: string,
     artists: string[],
     genres: string[],
+    notes: string,
 
     author: string,
     status: Status,
 
-    moderator: string,
-    reason_of_denial: string,
+    moderator?: string,
 
     creation_date: Date | undefined,
     submission_date: Date | undefined,
     approval_date: Date | undefined,
 
+    message_id: number,
+    chat_id: number,
     scores: {user:string, score: number}[]
 
 }
