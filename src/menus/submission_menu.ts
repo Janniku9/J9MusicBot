@@ -60,11 +60,10 @@ export const submission_menu_handler = {pattern: "submission_menu",
             if(db.is_trusted("" + cbq.from?.id)) {
                 post_song(bot, db, song_id);
             } else {
-                bot.sendMessage(cbq.message.chat.id, "Waiting for approval!")
-                bot.editMessageReplyMarkup(empty_menu(), msg_info)
-                
+                bot.sendMessage(cbq.message.chat.id, "Waiting for approval!")  
                 bot.sendMessage(db.get_owner().id, submission_text(db, song_id), {parse_mode: 'HTML', reply_markup: application_menu(db, song_id)})
             }
+            bot.editMessageReplyMarkup(empty_menu(), msg_info)
         } else if (action == "cancel") {
             bot.deleteMessage(chat_id, "" + msg_id);
         } else if (action == "title") {
