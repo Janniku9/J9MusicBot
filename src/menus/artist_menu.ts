@@ -119,7 +119,7 @@ export const artist_question = {type: "artist",
     handler: function (bot: TelegramBot, db: DataBaseHelper, msg: TelegramBot.Message, q: Question) {
         const song_id = q.options.song_id;
 
-        const artist = sanitize(msg.text).replace(" ", "_").replace("-", "_").toUpperCase(); 
+        const artist = sanitize(msg.text).replace(/\s/g, "_").replace("-", "_").toUpperCase(); 
         db.add_artist_to_song(song_id, artist);
 
         bot.deleteMessage(msg.chat.id, "" + msg.message_id)
